@@ -1,0 +1,11 @@
+.venv/
+_build/
+__pycache__/
+.DS_Store
+
+# Local Claude Code permissions — machine-specific, not shared
+.claude/settings.local.json
+
+# Source draft exported from Google Docs. Not tracked: it still contains the
+# lab Pi's SSH password. Redact it before committing, or leave it untracked.
+URA.md
