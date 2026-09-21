@@ -3,7 +3,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Raspberry Pi and Pixhawk Setup"
+project = "Connecting Pixhawk to ROS 2"
 author = "Mable Liu"
 copyright = "2026, Mable Liu"
 

@@ -1,4 +1,4 @@
-# Raspberry Pi and Pixhawk Setup
+# Connecting Pixhawk to ROS 2
 
 How to set up a Raspberry Pi as a companion computer for a Pixhawk flight
 controller, so PX4 flight data shows up as ROS 2 topics on your network.
