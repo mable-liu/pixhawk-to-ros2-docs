@@ -15,16 +15,16 @@ Two parts: making the cable, then setting up the Pi so the serial port works.
 
 ### Pinout
 
-TELEM2 is a 6-pin JST-GH connector. You only need three of the six wires. The arrows
-show which way the data flows:
+TELEM2 is a 6-pin JST-GH connector. You only need three of the six wires:
 
-| TELEM2 pin | | Pi pin |
-|---|:---:|---|
-| 2 (TX) | → | 10 (RXD, GPIO 15) |
-| 3 (RX) | ← | 8 (TXD, GPIO 14) |
-| 6 (GND) | — | 6 (GND) |
-
-Leave pins 1 (+5V), 4 (CTS) and 5 (RTS) unconnected.
+| TELEM2 pin | Signal | Pi pin | Pi signal |
+|---|---|---|---|
+| 1 | VCC (+5V) | — | **Do not connect** |
+| 2 | TX | Pin 10 | RXD (GPIO 15) |
+| 3 | RX | Pin 8 | TXD (GPIO 14) |
+| 4 | CTS | — | Not used |
+| 5 | RTS | — | Not used |
+| 6 | GND | Pin 6 | GND |
 
 Notice that TX and RX cross over. Transmit on one board goes to receive on the other.
 Connecting TX to TX is the most common mistake here, and it gives you no error at
