@@ -19,6 +19,7 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "URA.md",
+    "README.md",
 ]
 
 # -- MyST configuration ------------------------------------------------------
