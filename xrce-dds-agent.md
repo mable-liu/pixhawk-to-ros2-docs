@@ -1,15 +1,15 @@
 # Micro XRCE-DDS Agent
 
 This is the bridge between PX4 and ROS 2. PX4 sends its internal messages down the
-serial cable, and the agent turns them into ROS 2 topics. It works both ways, so ROS
-2 nodes can also send commands back to PX4.
+serial cable and the agent turns them into ROS 2 topics. It works both ways, so ROS 2
+nodes can send commands back to PX4 as well.
 
 This replaces the [MAVLink setup](mavlink-bridge.md) on TELEM2.
 
 ## Check your PX4 version
 
-The part of PX4 that does this only exists in **v1.14 and later**. On older firmware,
-none of this will work.
+The PX4 module that does this, `uxrce_dds_client`, only exists in **v1.14 and
+later**. On older firmware, none of this will work.
 
 Open QGroundControl's **Analyze → MAVLink Console** and run:
 
@@ -90,7 +90,7 @@ which MicroXRCEAgent
 
 You should get `/usr/local/bin/MicroXRCEAgent`.
 
-## Test the bridge
+## Check it worked
 
 ### 1. Check the PX4 side
 
@@ -118,7 +118,7 @@ In your SSH session, run this and leave it going:
 MicroXRCEAgent serial --dev /dev/serial0 -b 921600
 ```
 
-You should see the session start, then a long list of topics being created:
+You should see it open the port and establish a session with PX4:
 
 ```text
 [1754353821.123456] info     | TermiosAgentLinux.cpp | init                     | running...             | fd: 3

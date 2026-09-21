@@ -21,10 +21,11 @@ The Pi runs headless on the drone, so everything here is done over SSH.
              921600 baud
 ```
 
-The serial cable can only carry one protocol at a time. MAVLink and uXRCE-DDS both
-want the same port, so you set it up twice: MAVLink first to check the wiring, then
-uXRCE-DDS for the real bridge. That is why [MAVLink bridge](mavlink-bridge.md) and
-[Micro XRCE-DDS Agent](xrce-dds-agent.md) are separate pages.
+The cable can only carry one protocol at a time, and MAVLink and uXRCE-DDS both want
+the same port. So you configure it twice: MAVLink first, because it is the quickest
+way to prove the wiring works, then uXRCE-DDS for the real bridge. Hence the two
+separate pages, [MAVLink bridge](mavlink-bridge.md) and
+[Micro XRCE-DDS Agent](xrce-dds-agent.md).
 
 ## What you need
 
@@ -36,6 +37,7 @@ uXRCE-DDS for the real bridge. That is why [MAVLink bridge](mavlink-bridge.md) a
 | TELEM2 cable | Cut and re-soldered by hand, see [Serial connection](serial-connection.md) |
 | 2×20 header pins | The Pi Zero 2 W ships without them |
 | micro-USB power supply | For bench testing |
+| [QGroundControl](http://qgroundcontrol.com/) | PX4 ground station app, runs on your laptop. You set PX4 parameters through it |
 
 | Software | Version |
 |---|---|
@@ -44,27 +46,23 @@ uXRCE-DDS for the real bridge. That is why [MAVLink bridge](mavlink-bridge.md) a
 | PX4 | v1.14 or later |
 | Micro XRCE-DDS Agent | Built from source |
 
-ROS 2 Humble only runs on Ubuntu 22.04. Other Ubuntu versions have no
-`ros-humble-*` packages, so this is not a free choice.
+ROS 2 Humble only runs on Ubuntu 22.04. There are no `ros-humble-*` packages for any
+other Ubuntu version, so pick 22.04.
 
 ## Scope
 
 This guide uses a Raspberry Pi Zero 2 W, but the companion computer can be any Linux
-machine with a serial port. The ROS 2 install, the MAVLink test, the agent, and the
-systemd service are all standard Linux and work anywhere.
-
-Only two pages are Raspberry Pi specific:
+machine with a serial port. Only two parts are Pi specific:
 
 - [Raspberry Pi setup](pi-setup.md), which uses Raspberry Pi Imager
 - [Enabling the UART](serial-connection.md#enabling-the-uart-on-the-pi), which edits
   the Pi's boot files
 
-On a different machine, skip those and use your own serial port name instead of
+On another machine, skip those and use your own serial port name instead of
 `/dev/serial0`.
 
-The same goes for the flight controller. Any board running PX4 v1.14 or later with a
-free telemetry port will work. Check its pinout against the
-[wiring table](serial-connection.md#pinout) first.
+Any flight controller running PX4 v1.14 or later with a free telemetry port works
+too. Check its pinout against the [wiring table](serial-connection.md#pinout) first.
 
 ## Useful links
 

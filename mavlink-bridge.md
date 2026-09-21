@@ -1,22 +1,25 @@
 # MAVLink bridge
 
-Before setting up ROS 2, check that the Pi and the Pixhawk can talk to each other.
-MAVProxy is a small ground station that runs in the terminal. If it sees a heartbeat
-from the flight controller, then your wiring, your serial setup, and your PX4
-settings are all correct.
+Before setting up ROS 2, check that the Pi and the Pixhawk can talk at all. MAVProxy
+is a small ground station that runs in the terminal. If it sees a heartbeat from the
+flight controller, your wiring, serial setup, and PX4 settings are all correct.
 
-This is only a test. Once it passes you switch the port over to uXRCE-DDS on
+This is only a test. Once it passes, you switch the port over to uXRCE-DDS on
 [the next page](xrce-dds-agent.md).
 
 ## Connect QGroundControl
 
-You set the PX4 parameters below from QGroundControl, which needs its own connection
-to the flight controller. Plug the Pixhawk into your laptop over **USB**.
+[QGroundControl](http://qgroundcontrol.com/) is the ground station app for PX4. You
+change the flight controller's parameters through it, so install it on your laptop if
+you have not already.
+
+Plug the Pixhawk into your laptop with a **USB cable** and wait for QGroundControl to
+connect.
 
 :::{important}
-Do not use a TELEM2 telemetry radio for this. You are about to disable MAVLink on
-TELEM2, which would disconnect QGroundControl and leave you unable to undo it without
-a USB cable.
+Use USB, not a wireless telemetry link. The parameters you are about to change
+control the TELEM2 port, so anything connected through TELEM2 will drop out halfway
+through.
 :::
 
 ## PX4 settings
@@ -48,13 +51,13 @@ sudo pip3 install mavproxy
 sudo apt remove modemmanager
 ```
 
-Remove ModemManager. It checks new serial devices to see if they are cellular modems,
-and while doing that it sends data down the link and breaks the connection. It looks
+That last line matters. ModemManager checks new serial devices to see if they are
+cellular modems, and the data it sends while doing so corrupts the link. It looks
 exactly like a wiring fault.
 
 The install takes a few minutes on a Pi Zero 2 W.
 
-## Test the connection
+## Check it worked
 
 Power up the Pixhawk with TELEM2 connected to the Pi, then run:
 

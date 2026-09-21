@@ -34,20 +34,20 @@ WantedBy=multi-user.target
 
 What the settings do:
 
-**`After` and `Wants`** wait for the network before starting. The agent needs a
-working network connection to announce itself on.
+`After` and `Wants` wait for the network, since the agent needs a connection to
+announce itself on.
 
-**`User=ubuntu`** runs the agent as your normal account rather than root. This works
-because that account is in the `dialout` group from
+`User=ubuntu` runs the agent as your normal account rather than root. That works
+because the account is in the `dialout` group from
 [the serial setup](serial-connection.md#3-give-your-user-access-to-the-serial-port).
 
-**`Environment="ROS_DOMAIN_ID=0"`** sets the domain ID. Services do not read your
-`.bashrc`, so you have to set it here. **Change this to whatever your ground station
-uses**, see [Ground station](ground-station.md#domain-id). If they do not match, the
-agent runs perfectly and nobody can see it.
+`Environment="ROS_DOMAIN_ID=0"` sets the domain ID. Services do not read your
+`.bashrc`, so it has to go here. **Use the same ID as your ground station**, see
+[Ground station](ground-station.md#domain-id). If they differ, the agent runs
+perfectly and nobody can see it.
 
-**`Restart=always`** restarts the agent if it stops. This matters at boot, when the
-service may start before the Pixhawk has finished powering up.
+`Restart=always` restarts the agent if it stops, which matters at boot when the
+service may come up before the Pixhawk has finished powering on.
 
 ## Turn it on
 
@@ -60,7 +60,7 @@ sudo systemctl start micro-xrce-dds-agent.service
 `daemon-reload` makes systemd read your new file. `enable` sets it to start at boot.
 `start` runs it now, so you do not have to reboot to test it.
 
-## Check it works
+## Check it worked
 
 ```bash
 systemctl status micro-xrce-dds-agent.service
@@ -84,29 +84,14 @@ journalctl -u micro-xrce-dds-agent.service -f
 If the service keeps restarting, you will see it here. Usually it is a permissions
 problem with the serial port or a wrong path in `ExecStart`.
 
-Then check the bridge itself, the same as before. In the QGroundControl MAVLink
-console:
+Then check the bridge itself. `uxrce_dds_client status` in the QGroundControl MAVLink
+console should still say `Running, connected`, and
+`ros2 topic echo /fmu/out/vehicle_attitude` on the
+[ground station](ground-station.md) should still respond when you tilt the Pixhawk.
 
-```bash
-uxrce_dds_client status
-```
+## Test a reboot
 
-You want `Running, connected`.
-
-And from the [ground station](ground-station.md):
-
-```bash
-source /opt/ros/humble/setup.bash
-ros2 topic list
-ros2 topic echo /fmu/out/vehicle_attitude
-```
-
-Tilt the Pixhawk by hand and watch the numbers under `q` change. Press
-{kbd}`Ctrl` + {kbd}`C` to stop.
-
-## The real test
-
-Reboot the Pi:
+This is the part that actually matters. Reboot the Pi:
 
 ```bash
 sudo reboot

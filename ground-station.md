@@ -1,7 +1,7 @@
 # Ground station
 
-How to read the PX4 topics from a computer other than the Pi. This is what makes the
-Pi useful as part of a larger system instead of an isolated board.
+How to read the PX4 topics from a computer other than the Pi, so you can monitor the
+drone from your desk.
 
 You need two things: the PX4 message definitions, and working ROS 2 discovery across
 your network.
@@ -19,9 +19,9 @@ and the other GUI tools.
 (px4-msgs-install)=
 ## Install px4_msgs
 
-`ros2 topic list` works without any message packages because it only reads topic
-names. Actually reading a topic needs its definition. Any computer that subscribes to
-PX4 topics needs `px4_msgs` installed.
+`ros2 topic list` works without any message packages, because it only reads topic
+names. Reading the contents of a topic needs its definition, so any computer that
+subscribes to PX4 topics needs `px4_msgs` installed.
 
 :::{admonition} Match the version to your firmware
 :class: important
@@ -110,7 +110,7 @@ If the receiver prints the message, discovery will work. If it hangs, your netwo
 blocking multicast and you will need a discovery server or a list of peer addresses.
 Ask whoever runs the network which approach to use.
 
-## Check you are getting real data
+## Check it worked
 
 With the [agent running on the Pi](xrce-dds-agent.md), on the ground station:
 
@@ -140,6 +140,8 @@ q:
 
 If those numbers move, the whole chain works: sensor to PX4, down the serial cable,
 through the agent, across the network, into your terminal.
+
+That is the setup finished.
 
 If the numbers do not change, or nothing prints, see
 [Troubleshooting](troubleshooting.md#topics-appear-but-echo-is-empty).

@@ -14,8 +14,8 @@ Use [Raspberry Pi Imager](https://www.raspberrypi.com/software/) on your laptop.
    **Ubuntu Server 22.04.5 LTS (64-bit)**
 3. **Choose Storage**: your SD card
 
-Pick the 64-bit version. ROS 2 Humble packages are only built for 64-bit, so the
-32-bit image will leave you stuck later.
+Pick the 64-bit version. ROS 2 Humble is only packaged for 64-bit, and the 32-bit
+image will leave you stuck at the install step.
 
 ## Set up Wi-Fi and SSH
 
@@ -47,9 +47,9 @@ Write the image, then put the card in the Pi.
 
 ## First boot
 
-1. Plug power into the **`PWR IN`** micro-USB port, the one nearer the corner. The
-   other port is for data and will not power the board properly. Both ports are
-   labelled on the underside.
+1. Plug power into the **`PWR IN`** micro-USB port, the one further from the
+   mini-HDMI socket. The other port is for data and will not power the board
+   properly. Both are labelled on the underside.
 
 2. Wait a minute or two. The first boot takes longer than usual because Ubuntu
    resizes the filesystem and runs its setup scripts.
@@ -64,8 +64,8 @@ Write the image, then put the card in the Pi.
 
 ### If `ubuntu.local` does not resolve
 
-Some networks block the protocol that resolves `.local` names. Find the Pi's IP
-address instead, either from your router's device list or by scanning:
+Some networks block the protocol behind `.local` names. Find the Pi's IP address
+instead, either from your router's device list or by scanning:
 
 ```bash
 arp -a
