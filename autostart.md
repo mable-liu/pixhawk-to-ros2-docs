@@ -1,12 +1,10 @@
 # Autostart
 
-Running the Micro XRCE-DDS Agent as a systemd service so it starts automatically
-whenever the Pi boots.
+Set the agent up as a systemd service so it starts on its own when the Pi boots.
 
-Without this, every flight requires SSHing into the Pi and starting the agent by
-hand, and the ROS 2 bridge dies the moment that SSH session closes. As a service, the
-Pixhawk joins the ROS 2 network as soon as the drone powers up, with no laptop
-involved.
+Without this you have to SSH in and start the agent by hand every time, and the
+bridge dies as soon as you close that session. As a service, the Pixhawk joins the
+ROS 2 network as soon as the drone powers on, with no laptop needed.
 
 ## The unit file
 
@@ -34,31 +32,24 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
-What each part is doing:
+What the settings do:
 
-`After` / `Wants=network-online.target`
-: Waits for networking before starting. DDS needs a usable network interface to
-  advertise on; starting earlier means the agent comes up on a machine with no
-  network and never re-advertises.
+**`After` and `Wants`** wait for the network before starting. The agent needs a
+working network connection to announce itself on.
 
-`User=ubuntu`
-: Runs as your normal user rather than root, which works because that user is in the
-  `dialout` group from
-  [Serial connection](serial-connection.md#3-grant-serial-access-to-your-user). If
-  serial permissions were never granted, this is where it fails.
+**`User=ubuntu`** runs the agent as your normal account rather than root. This works
+because that account is in the `dialout` group from
+[the serial setup](serial-connection.md#3-give-your-user-access-to-the-serial-port).
 
-`Environment="ROS_DOMAIN_ID=0"`
-: A systemd service does not read your `~/.bashrc`, so the domain ID set there is
-  invisible to it. It has to be declared in the unit. **Set this to the same domain ID
-  your ground station uses** — see [Ground station](ground-station.md#domain-id). A
-  mismatch means the agent runs perfectly and no one can see it.
+**`Environment="ROS_DOMAIN_ID=0"`** sets the domain ID. Services do not read your
+`.bashrc`, so you have to set it here. **Change this to whatever your ground station
+uses**, see [Ground station](ground-station.md#domain-id). If they do not match, the
+agent runs perfectly and nobody can see it.
 
-`Restart=always` / `RestartSec=5`
-: Restarts the agent if it exits — including at boot, when the service may start
-  before the Pixhawk has finished powering up and `/dev/serial0` has anything on the
-  other end.
+**`Restart=always`** restarts the agent if it stops. This matters at boot, when the
+service may start before the Pixhawk has finished powering up.
 
-## Enabling the service
+## Turn it on
 
 ```bash
 sudo systemctl daemon-reload
@@ -66,19 +57,16 @@ sudo systemctl enable micro-xrce-dds-agent.service
 sudo systemctl start micro-xrce-dds-agent.service
 ```
 
-`daemon-reload` makes systemd re-read unit files from disk — needed after creating or
-editing one. `enable` sets it to start at boot; `start` runs it now without waiting
-for a reboot.
+`daemon-reload` makes systemd read your new file. `enable` sets it to start at boot.
+`start` runs it now, so you do not have to reboot to test it.
 
-## Verifying
-
-Check the service state:
+## Check it works
 
 ```bash
 systemctl status micro-xrce-dds-agent.service
 ```
 
-Expected: `Active: active (running)`, with recent agent output below.
+You want to see `Active: active (running)`:
 
 ```text
 ● micro-xrce-dds-agent.service - Micro XRCE-DDS Agent (PX4 to ROS 2 bridge)
@@ -87,28 +75,23 @@ Expected: `Active: active (running)`, with recent agent output below.
    Main PID: 1180 (MicroXRCEAgent)
 ```
 
-Follow the live log:
+To watch the log as it runs:
 
 ```bash
 journalctl -u micro-xrce-dds-agent.service -f
 ```
 
-A service stuck in a restart loop shows repeated start/exit lines here — usually a
-permissions problem on `/dev/serial0`, or a wrong path in `ExecStart`.
+If the service keeps restarting, you will see it here. Usually it is a permissions
+problem with the serial port or a wrong path in `ExecStart`.
 
-Then confirm the whole chain still works, exactly as when the agent was started by
-hand. In the QGroundControl MAVLink console:
+Then check the bridge itself, the same as before. In the QGroundControl MAVLink
+console:
 
 ```bash
 uxrce_dds_client status
 ```
 
-Expected:
-
-```text
-Running, connected
-transport: serial
-```
+You want `Running, connected`.
 
 And from the [ground station](ground-station.md):
 
@@ -118,30 +101,30 @@ ros2 topic list
 ros2 topic echo /fmu/out/vehicle_attitude
 ```
 
-Tilt the Pixhawk by hand and confirm the quaternion values under `q` change as it
-moves. Press {kbd}`Ctrl` + {kbd}`C` to stop.
+Tilt the Pixhawk by hand and watch the numbers under `q` change. Press
+{kbd}`Ctrl` + {kbd}`C` to stop.
 
 ## The real test
 
-Reboot the Pi and change nothing else:
+Reboot the Pi:
 
 ```bash
 sudo reboot
 ```
 
-Once it comes back, the topics should be visible from the ground station without
-opening a single SSH session. That is the point of this page.
+When it comes back, the topics should appear on the ground station without you
+opening a single SSH session.
 
 ## Managing the service
 
 ```bash
-# Stop it (e.g. to run the agent manually for debugging)
+# Stop it, for example to run the agent by hand while debugging
 sudo systemctl stop micro-xrce-dds-agent.service
 
 # Stop it starting at boot
 sudo systemctl disable micro-xrce-dds-agent.service
 
-# Reload after editing the unit file
+# Apply changes after editing the file
 sudo systemctl daemon-reload
 sudo systemctl restart micro-xrce-dds-agent.service
 ```

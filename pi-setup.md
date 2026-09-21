@@ -1,116 +1,100 @@
 # Raspberry Pi setup
 
-Flashing the microSD card and getting a headless SSH session onto the Pi.
+Flash the SD card and get an SSH connection to the Pi.
 
-The microSD card is the Pi's only storage — it holds the operating system the Pi
-boots from. The stock Raspberry Pi OS is replaced with Ubuntu Server, because ROS 2
-Humble is packaged for Ubuntu 22.04 and not for Raspberry Pi OS.
+The SD card holds the operating system. We use Ubuntu Server instead of Raspberry Pi
+OS because ROS 2 Humble is only packaged for Ubuntu 22.04.
 
-## Flashing the microSD card
+## Flash the SD card
 
 Use [Raspberry Pi Imager](https://www.raspberrypi.com/software/) on your laptop.
 
-1. **Choose Device** — Raspberry Pi Zero 2 W.
-2. **Choose OS** — `Other general-purpose OS` → `Ubuntu` →
-   **Ubuntu Server 22.04.5 LTS (64-bit)**.
-3. **Choose Storage** — the microSD card.
+1. **Choose Device**: Raspberry Pi Zero 2 W
+2. **Choose OS**: `Other general-purpose OS` → `Ubuntu` →
+   **Ubuntu Server 22.04.5 LTS (64-bit)**
+3. **Choose Storage**: your SD card
 
-The 64-bit build matters. The Pi Zero 2 W has a 64-bit CPU, and the `ros-humble-*`
-packages are published for `arm64`. Flashing the 32-bit `armhf` image leaves you with
-no installable ROS 2 packages later.
+Pick the 64-bit version. ROS 2 Humble packages are only built for 64-bit, so the
+32-bit image will leave you stuck later.
 
-## Configuring Wi-Fi and SSH during flashing
+## Set up Wi-Fi and SSH
 
-Before writing, open the settings dialog (the gear icon, or **Edit Settings** when
-Imager offers to customise the OS) and set:
+Before writing, open the settings (the gear icon, or **Edit Settings** when Imager
+asks if you want to customise the OS):
 
 | Setting | Value |
 |---|---|
 | Hostname | `ubuntu` |
-| Enable SSH | Yes, *Use password authentication* |
+| Enable SSH | Yes, with password authentication |
 | Username | `ubuntu` |
-| Password | *(see below)* |
+| Password | Your choice |
 | Wireless LAN SSID | Your 2.4 GHz network |
-| Wireless LAN password | The network password |
+| Wireless LAN password | Your network password |
 | Wireless LAN country | Your two-letter country code |
-| Locale / timezone | Your local settings |
+| Locale / timezone | Your settings |
 
-These are what make the rest of this document work. The hostname sets what you SSH
-to (`ubuntu.local`), and the username sets who you SSH as. If you choose different
-values, substitute them everywhere below.
+The hostname becomes the address you SSH to (`ubuntu.local`) and the username becomes
+the account you log in as. If you pick different values, use yours instead of
+`ubuntu` everywhere below.
 
-:::{admonition} Wi-Fi credentials
-:class: important
-The Pi Zero 2 W has a 2.4 GHz radio only — it cannot see a 5 GHz network. If your
-access point broadcasts one SSID on both bands with band steering, confirm the Pi is
-allowed to associate on 2.4 GHz, or the Pi will flash successfully and then never
-appear on the network.
-
-Choose your own password here. No password is recorded in this document, since it is
-published publicly.
+:::{important}
+The Pi Zero 2 W only has a 2.4 GHz radio. It cannot see 5 GHz networks. If your router
+uses one name for both bands, check that the Pi is allowed on 2.4 GHz, or it will
+flash fine and then never appear on the network.
 :::
 
-Write the image, then move the card to the Pi.
+Write the image, then put the card in the Pi.
 
-## First boot and SSH
+## First boot
 
-1. Power the Pi through the **`PWR IN`** micro-USB port — the one closer to the
-   corner of the board. The other micro-USB port is `USB` (data) and will not power
-   the board reliably.
+1. Plug power into the **`PWR IN`** micro-USB port, the one nearer the corner. The
+   other port is for data and will not power the board properly. Both ports are
+   labelled on the underside.
 
-   :::{tip}
-   The Pi Zero 2 W has two identical-looking micro-USB ports. They are labelled on
-   the underside of the board.
-   :::
+2. Wait a minute or two. The first boot takes longer than usual because Ubuntu
+   resizes the filesystem and runs its setup scripts.
 
-2. Wait for first boot. Ubuntu Server expands the filesystem and runs cloud-init on
-   the first boot, so it can be a minute or two before SSH answers — longer than a
-   steady-state boot.
-
-3. Connect your laptop to the **same Wi-Fi network** you configured in Imager, then
-   SSH in:
+3. Connect your laptop to the same Wi-Fi network, then SSH in:
 
    ```bash
    ssh ubuntu@ubuntu.local
    ```
 
-   Enter the password you set during flashing.
+   Use the password you set in Imager.
 
 ### If `ubuntu.local` does not resolve
 
-That hostname is resolved by mDNS, which some networks block and some client
-configurations do not support. If it fails, find the Pi's IP address instead — check
-the connected-clients list on your router, or scan from your laptop:
+Some networks block the protocol that resolves `.local` names. Find the Pi's IP
+address instead, either from your router's device list or by scanning:
 
 ```bash
-# macOS / Linux — look for a Raspberry Pi Foundation MAC address
 arp -a
 ```
 
-Then connect by address:
+Then connect to that address:
 
 ```bash
 ssh ubuntu@<pi-ip-address>
 ```
 
-## Ending a session safely
+## Shutting down
 
-To close the SSH connection and return to your laptop's shell:
+To close the SSH session:
 
 ```bash
 exit
 ```
 
-Before unplugging the Pi, shut it down properly. Pulling power from a running Pi
-risks corrupting the SD card filesystem:
+Always shut down before unplugging the Pi. Cutting power to a running Pi can corrupt
+the SD card:
 
 ```bash
 sudo shutdown now
 ```
 
-The SSH connection drops as the Pi halts, which is expected. Wait for the green
-activity LED to stop flickering before removing power.
+The SSH connection will drop, which is normal. Wait for the green LED to stop
+flashing before removing power.
 
 ## Next
 
-Install ROS 2 → [ROS 2 installation](ros2-install.md)
+[Install ROS 2](ros2-install.md)

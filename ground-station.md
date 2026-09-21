@@ -1,46 +1,44 @@
 # Ground station
 
-Reading the PX4 topics from a computer other than the Pi. This is what makes the Pi
-useful as part of a larger multi-robot system rather than an isolated board — once
-DDS discovery works, any machine on the network can subscribe to the drone's
-telemetry.
+How to read the PX4 topics from a computer other than the Pi. This is what makes the
+Pi useful as part of a larger system instead of an isolated board.
 
-Two things are needed: the `px4_msgs` message definitions, and working ROS 2
-discovery across the Wi-Fi network.
+You need two things: the PX4 message definitions, and working ROS 2 discovery across
+your network.
 
 ## Requirements
 
-The ground station must run **Ubuntu 22.04 with ROS 2 Humble**, matching the Pi. ROS 2
-distributions are not wire-compatible across releases, so a machine running Jazzy or
-Foxy will not interoperate cleanly.
+The other computer needs **Ubuntu 22.04 with ROS 2 Humble**, the same as the Pi. ROS
+2 versions do not talk to each other, so a machine running Jazzy or Foxy will not
+work.
 
-Install ROS 2 Humble on it the same way as on the Pi — see
-[ROS 2 installation](ros2-install.md). On a desktop machine you can use
-`ros-humble-desktop` instead of `ros-humble-ros-base` to get RViz and the GUI tools.
+Install it the same way as on the Pi, see [ROS 2 installation](ros2-install.md). On a
+desktop you can use `ros-humble-desktop` instead of `ros-humble-ros-base` to get RViz
+and the other GUI tools.
 
 (px4-msgs-install)=
-## Installing px4_msgs
+## Install px4_msgs
 
-`ros2 topic list` works without any message packages, because it only reads topic
-names. Actually *reading* a topic needs its message definition. Any computer that
-inspects, subscribes to, or publishes PX4 topics needs a matching `px4_msgs` build.
+`ros2 topic list` works without any message packages because it only reads topic
+names. Actually reading a topic needs its definition. Any computer that subscribes to
+PX4 topics needs `px4_msgs` installed.
 
-:::{admonition} The branch must match your PX4 version
+:::{admonition} Match the version to your firmware
 :class: important
-PX4's message definitions change between releases. A `px4_msgs` built from the wrong
-branch produces topics that appear in `ros2 topic list` but fail to deserialise —
-`ros2 topic echo` then prints nothing, or garbage, or a type mismatch error.
+PX4's message definitions change between releases. If you build `px4_msgs` from the
+wrong branch, the topics will show up in `ros2 topic list` but you will not be able to
+read them. `ros2 topic echo` will print nothing, or garbage, or an error.
 
-Get the firmware version with `ver all` in the QGroundControl MAVLink console
-([details](xrce-dds-agent.md#confirming-the-px4-version)), then check out the
-matching `release/x.y` branch below.
+Get your firmware version with `ver all` in the QGroundControl MAVLink console
+([details](xrce-dds-agent.md#check-your-px4-version)), then use the matching
+`release/x.y` branch.
 :::
 
 ```bash
 mkdir -p ~/ws_px4/src
 cd ~/ws_px4/src
 
-# Replace release/1.15 with the branch matching your PX4 firmware version
+# Change release/1.15 to match your PX4 version
 git clone -b release/1.15 https://github.com/PX4/px4_msgs.git
 
 cd ~/ws_px4
@@ -48,62 +46,57 @@ source /opt/ros/humble/setup.bash
 colcon build
 ```
 
-Then source the workspace on top of the base ROS 2 environment:
+Then load it on top of the base ROS 2 environment:
 
 ```bash
 source ~/ws_px4/install/local_setup.bash
 ```
 
-To make that automatic in new terminals:
+To do that automatically in new terminals:
 
 ```bash
 echo 'source ~/ws_px4/install/local_setup.bash' >> ~/.bashrc
 ```
 
-:::{admonition} Build px4_msgs on the ground station, not the Pi
-:class: note
-`colcon build` on 512 MB of RAM is painful and mostly unnecessary — the Pi runs the
-agent, which does not need the message definitions. Build `px4_msgs` on the machine
-that will actually subscribe.
+:::{note}
+Build `px4_msgs` on the ground station, not the Pi. The Pi only runs the agent, which
+does not need the message definitions, and `colcon build` is painfully slow on 512 MB
+of RAM.
 :::
 
-## ROS 2 discovery across the network
+## ROS 2 discovery
 
-For the ground station to see the Pi's topics, both must be on the same Wi-Fi network
-*and* agree on their DDS discovery settings.
+For the ground station to see the Pi's topics, both machines need to be on the same
+network and agree on their discovery settings.
 
 ### Domain ID
 
-ROS 2 partitions the network by `ROS_DOMAIN_ID`. Nodes on different domain IDs are
-invisible to each other even on the same LAN. It defaults to `0` if unset, so an
-unconfigured machine only talks to other unconfigured machines.
+ROS 2 splits the network up using `ROS_DOMAIN_ID`. Machines with different IDs cannot
+see each other, even on the same network. If you do not set it, it defaults to `0`.
 
 ```bash
 export ROS_DOMAIN_ID=<id>
 ```
 
-Add the same line to `~/.bashrc` on **both** the Pi and the ground station, and note
-that the [systemd service](autostart.md) needs it too — a service does not read your
-`.bashrc`.
+:::{important}
+Any number from 0 to 101 works. What matters is that every machine that needs to see
+the others uses the same one.
 
-:::{admonition} Choose one value and use it everywhere
-:class: important
-Any integer from 0 to 101 works. What matters is that every machine that needs to see
-each other uses the same one.
-
-If you are running several robots on one network, give each its own domain ID so they
-do not interfere — that is what the setting is for. To find the value a machine is
-currently using, run `env | grep ROS`.
+If you are running several robots on one network, give each robot its own ID so they
+do not interfere with each other. To check what a machine is currently using, run
+`env | grep ROS`.
 :::
+
+Add the same line to `~/.bashrc` on both machines. The
+[systemd service](autostart.md) needs it too, since services do not read `.bashrc`.
 
 ### Multicast on the Wi-Fi network
 
-Default DDS discovery relies on UDP multicast. Many managed access points block or
-rate-limit multicast between wireless clients, which produces the most confusing
-failure in this whole setup: everything works when both machines are on Ethernet, or
-when both run on the Pi itself, but topics never appear across the wireless link.
+ROS 2 finds other machines using multicast. Many routers and access points block
+multicast between wireless devices, which causes a confusing problem: everything
+works over Ethernet or on one machine, but topics never appear over Wi-Fi.
 
-Test whether multicast reaches between the machines:
+To check whether multicast gets through:
 
 ```bash
 # On the ground station
@@ -113,11 +106,11 @@ ros2 multicast receive
 ros2 multicast send
 ```
 
-If the receiver prints the message, discovery will work. If it hangs, the network is
-dropping multicast and you will need a discovery server or an explicit peers list —
-ask whoever administers the network which approach to use.
+If the receiver prints the message, discovery will work. If it hangs, your network is
+blocking multicast and you will need a discovery server or a list of peer addresses.
+Ask whoever runs the network which approach to use.
 
-## Verifying real data
+## Check you are getting real data
 
 With the [agent running on the Pi](xrce-dds-agent.md), on the ground station:
 
@@ -127,15 +120,14 @@ source ~/ws_px4/install/local_setup.bash
 ros2 topic list
 ```
 
-The `/fmu/...` topics should appear. Then confirm the data is live rather than just
-the topic existing:
+The `/fmu/...` topics should appear. Now check that data is actually flowing:
 
 ```bash
 ros2 topic echo /fmu/out/vehicle_attitude
 ```
 
-Tilt the Pixhawk or the drone by hand. The quaternion values under `q` should change
-as you move it:
+Tilt the Pixhawk or the drone by hand. The numbers under `q` should change as you
+move it:
 
 ```text
 timestamp: 1754353900123456
@@ -146,10 +138,10 @@ q:
 - 0.0033
 ```
 
-Values that update as you move the airframe confirm the whole chain end to end —
-sensor to uORB to serial link to agent to DDS to your terminal.
+If those numbers move, the whole chain works: sensor to PX4, down the serial cable,
+through the agent, across the network, into your terminal.
 
-Static values, or no output at all, mean the topic exists but nothing is flowing. See
-[Troubleshooting → Topics appear but echo is empty](troubleshooting.md#topics-appear-but-echo-is-empty).
+If the numbers do not change, or nothing prints, see
+[Troubleshooting](troubleshooting.md#topics-appear-but-echo-is-empty).
 
 Press {kbd}`Ctrl` + {kbd}`C` to stop.

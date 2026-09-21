@@ -1,0 +1,8 @@
+# Local development only. Read the Docs installs requirements.txt, not this file.
+# Usage:
+#   .venv/bin/python -m pip install -r requirements-dev.txt
+#   .venv/bin/sphinx-autobuild . _build/html --open-browser
+
+-r requirements.txt
+
+sphinx-autobuild==2024.10.3

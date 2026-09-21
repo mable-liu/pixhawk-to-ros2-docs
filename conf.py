@@ -3,7 +3,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Raspberry Pi Companion Computer for PX4"
+project = "Raspberry Pi + Pixhawk"
 author = "Mable Liu"
 copyright = "2026, Mable Liu"
 

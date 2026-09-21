@@ -1,50 +1,46 @@
 # MAVLink bridge
 
-Before configuring ROS 2, prove that the Pi and the Pixhawk can actually talk over
-the [serial link](serial-connection.md). MAVProxy is a lightweight MAVLink ground
-station that runs in a terminal — if it shows a heartbeat, the wiring, the UART
-configuration, and the PX4 port settings are all correct.
+Before setting up ROS 2, check that the Pi and the Pixhawk can talk to each other.
+MAVProxy is a small ground station that runs in the terminal. If it sees a heartbeat
+from the flight controller, then your wiring, your serial setup, and your PX4
+settings are all correct.
 
-This is a diagnostic step. Once it passes, TELEM2 is reconfigured for uXRCE-DDS in
-[the next section](xrce-dds-agent.md) and MAVLink is switched back off.
+This is only a test. Once it passes you switch the port over to uXRCE-DDS on
+[the next page](xrce-dds-agent.md).
 
-## Connecting QGroundControl
+## Connect QGroundControl
 
-The PX4 parameters below are set from QGroundControl, which needs its own link to
-the flight controller. Connect the Pixhawk to your laptop over **USB** — not over
-TELEM2, which is about to be reconfigured out from under you.
+You set the PX4 parameters below from QGroundControl, which needs its own connection
+to the flight controller. Plug the Pixhawk into your laptop over **USB**.
 
-:::{admonition} Do not configure TELEM2 over TELEM2
-:class: important
-If your only link to the flight controller is the telemetry radio on TELEM2, setting
-`MAV_1_CONFIG = 0` later will disconnect QGroundControl and leave you unable to
-change it back without a USB cable. Use USB for all parameter changes.
+:::{important}
+Do not use a TELEM2 telemetry radio for this. You are about to disable MAVLink on
+TELEM2, which would disconnect QGroundControl and leave you unable to undo it without
+a USB cable.
 :::
 
-## PX4 parameters for MAVLink
+## PX4 settings
 
 In QGroundControl, go to **Vehicle Setup → Parameters** and set:
 
-| Parameter | Value | Meaning |
+| Parameter | Value | What it does |
 |---|---|---|
-| `MAV_1_CONFIG` | `TELEM2` | Run a MAVLink instance on TELEM2 |
-| `UXRCE_DDS_CFG` | `0` (Disabled) | Keep the DDS client off this port |
-| `SER_TEL2_BAUD` | `57600` | Serial rate for TELEM2 |
+| `MAV_1_CONFIG` | `TELEM2` | Runs MAVLink on TELEM2 |
+| `UXRCE_DDS_CFG` | `0` (Disabled) | Keeps the DDS client off that port |
+| `SER_TEL2_BAUD` | `57600` | Sets the speed of the link |
 
-`MAV_1_CONFIG` and `UXRCE_DDS_CFG` both claim a serial port, and two protocols cannot
-share one UART. Setting one requires disabling the other.
+Only one protocol can use a serial port at a time, so turning on MAVLink means
+turning off uXRCE-DDS.
 
-:::{admonition} Reboot after changing these
-:class: important
-`MAV_1_CONFIG` and `UXRCE_DDS_CFG` only take effect after the flight controller
-restarts — the port assignment is read at boot. QGroundControl prompts for a reboot
-when a parameter requires one; take it. Without the reboot the port stays as it was
-and the test below fails for reasons that have nothing to do with your wiring.
+:::{important}
+Reboot the flight controller after changing these. PX4 only reads the port settings
+at startup, so nothing happens until you restart it. QGroundControl will offer to
+reboot for you.
 :::
 
-## Installing MAVProxy on the Pi
+## Install MAVProxy on the Pi
 
-In the SSH session on the Pi:
+In your SSH session:
 
 ```bash
 sudo apt install python3-pip
@@ -52,24 +48,21 @@ sudo pip3 install mavproxy
 sudo apt remove modemmanager
 ```
 
-Removing ModemManager matters. It probes newly appeared serial devices looking for
-cellular modems, and in doing so it grabs `/dev/serial0` and injects bytes into the
-link — which corrupts MAVLink framing in a way that looks like a wiring fault.
+Remove ModemManager. It checks new serial devices to see if they are cellular modems,
+and while doing that it sends data down the link and breaks the connection. It looks
+exactly like a wiring fault.
 
-:::{note}
-On a board as small as the Pi Zero 2 W, expect `pip3 install` to take several minutes.
-:::
+The install takes a few minutes on a Pi Zero 2 W.
 
-## Testing the link
+## Test the connection
 
-With the Pixhawk powered and TELEM2 wired to the Pi:
+Power up the Pixhawk with TELEM2 connected to the Pi, then run:
 
 ```bash
 mavproxy.py --master=/dev/serial0 --baudrate 57600
 ```
 
-Expected: MAVProxy connects and reports a heartbeat from the flight controller,
-followed by a stream of status messages and a `MAV>` prompt.
+You should see something like this:
 
 ```text
 Connect /dev/serial0 source_system=255
@@ -80,13 +73,13 @@ MAV> Detected vehicle 1:1 on link 0
 online system 1
 ```
 
-Once you see `Detected vehicle`, the serial path is proven end to end.
+Once `Detected vehicle` appears, the cable works.
 
-If it sits on `Waiting for heartbeat` indefinitely, nothing is arriving. Work through
-[Troubleshooting → No heartbeat](troubleshooting.md#no-mavlink-heartbeat).
+If it sits on `Waiting for heartbeat` forever, nothing is coming through. See
+[Troubleshooting](troubleshooting.md#no-mavlink-heartbeat).
 
-Press {kbd}`Ctrl` + {kbd}`C` to exit MAVProxy.
+Press {kbd}`Ctrl` + {kbd}`C` to quit.
 
 ## Next
 
-Switch the port to uXRCE-DDS → [Micro XRCE-DDS Agent](xrce-dds-agent.md)
+[Set up the Micro XRCE-DDS Agent](xrce-dds-agent.md)

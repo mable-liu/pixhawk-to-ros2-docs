@@ -1,12 +1,10 @@
 # Serial connection
 
-Connecting the Pixhawk's TELEM2 port to the Raspberry Pi's UART pins, so the two
-boards can talk over a serial link. This is the physical foundation for everything
-in the rest of this document — both the [MAVLink bridge](mavlink-bridge.md) and the
-[Micro XRCE-DDS Agent](xrce-dds-agent.md) run over this one link.
+Connect the Pixhawk's TELEM2 port to the Pi's UART pins. Everything else in this
+guide runs over this cable, so get it right before moving on.
 
-There are two halves: building the wiring harness, and configuring the Pi's UART so
-that `/dev/serial0` is actually usable.
+There are two parts: making the cable, and setting up the Pi so the serial port
+works.
 
 ## Wiring
 
@@ -18,102 +16,92 @@ that `/dev/serial0` is actually usable.
 
 ### Pinout
 
-The Pixhawk's TELEM2 is a 6-pin JST-GH connector following the Pixhawk connector
-standard. Only three of its six conductors are used:
+TELEM2 is a 6-pin JST-GH connector. You only need three of the six wires:
 
-| TELEM2 pin | Signal | Raspberry Pi pin | Pi signal |
+| TELEM2 pin | Signal | Pi pin | Pi signal |
 |---|---|---|---|
-| 1 | VCC (+5V) | — | **Not connected** |
+| 1 | VCC (+5V) | — | **Do not connect** |
 | 2 | TX | Pin 10 | RXD (GPIO 15) |
 | 3 | RX | Pin 8 | TXD (GPIO 14) |
-| 4 | CTS | — | Not connected |
-| 5 | RTS | — | Not connected |
+| 4 | CTS | — | Not used |
+| 5 | RTS | — | Not used |
 | 6 | GND | Pin 6 | GND |
 
-Three things to get right:
+Three things to watch for.
 
-**TX and RX cross over.** The Pixhawk's transmit line goes to the Pi's receive line
-and vice versa. Wiring TX to TX is the most common failure here, and it fails
-silently — no error, just no data. If nothing arrives during
-[MAVLink testing](mavlink-bridge.md), check this first.
+**TX goes to RX.** The Pixhawk's transmit wire connects to the Pi's receive pin, and
+the other way around. Connecting TX to TX is the most common mistake, and it gives no
+error at all, just no data. If nothing works during the
+[MAVLink test](mavlink-bridge.md), check this first.
 
-**Ground is mandatory.** Serial signalling is referenced to a shared ground. Without
-pin 6 connected, the link will not work even with TX and RX correct.
+**Connect the ground.** Serial needs a shared ground to work. Without pin 6 the link
+will fail even if TX and RX are correct.
 
-**Leave +5V disconnected.** The Pi Zero 2 W draws more current than the TELEM port is
-meant to supply, and back-feeding 5 V between two independently powered boards risks
-damaging both. Power the Pi from its own supply — the `PWR IN` micro-USB port on the
-bench, or the drone's power distribution in flight. CTS and RTS are unused because
-hardware flow control is not enabled on this link.
+**Leave +5V unconnected.** The Pi draws more power than the TELEM port can supply,
+and feeding 5V between two powered boards can damage both. Power the Pi separately,
+from the micro-USB port on the bench or the drone's power supply in flight. CTS and
+RTS are unused because this link does not use hardware flow control.
 
-:::{admonition} Confirm the pinout for your flight controller
+:::{admonition} Check the pinout for your own board
 :class: warning
-The numbering above is the Pixhawk connector standard, which modern boards follow.
-Older flight controllers using DF13 connectors, and some third-party boards, do not.
-Check your board's own pinout documentation before cutting the cable — a miswired
-harness can damage the flight controller.
+The table above follows the standard Pixhawk connector layout, which most modern
+boards use. Older boards with DF13 connectors and some third-party boards do not.
+Look up your board's pinout before cutting anything. A miswired cable can destroy the
+flight controller.
 :::
 
-### Building the harness
+### Making the cable
 
-The Pi has no connector that matches the Pixhawk telemetry cable, so a harness is
-made by hand:
+The Pi has no connector that fits the Pixhawk telemetry cable, so you make one:
 
-1. Solder header pins onto the Pi Zero 2 W. The board ships with an unpopulated
-   2×20 header footprint, so the UART pins have nothing to connect to until this is
-   done.
-2. Cut the JST-GH telemetry cable that came with the Pixhawk, keeping the connector
-   end intact.
-3. Solder the three needed conductors to wires terminating in female jumper
-   connectors that fit the Pi's header pins.
-4. Sleeve each solder joint in heat-shrink tubing for insulation, so adjacent joints
-   cannot short against each other under vibration.
-5. Seat the wires in the connector housing and check continuity with a multimeter
-   before powering anything.
+1. Solder header pins onto the Pi. The Zero 2 W ships with empty header holes, so
+   there is nothing to plug into until you do.
+2. Cut the telemetry cable that came with the Pixhawk, keeping the connector end.
+3. Solder the three wires you need onto jumper wires that fit the Pi's pins.
+4. Cover each joint with heat shrink so nothing shorts out from vibration.
+5. Tuck the wires into the connector housing and check continuity with a multimeter
+   before powering anything on.
 
 ## Enabling the UART on the Pi
 
-A fresh Ubuntu Server image does not give you a usable `/dev/serial0`. Two things
-are in the way:
+A fresh Ubuntu install will not give you a working serial port. Two things get in the
+way:
 
-- **A serial console** is attached to the UART, so Linux is transmitting login
-  prompts down the same wires PX4 wants to use.
-- **Bluetooth owns the good UART.** The Pi has two: the PL011 (`ttyAMA0`), which is
-  full-featured and stable, and the mini-UART (`ttyS0`), whose baud rate is derived
-  from the variable VPU core clock. By default the PL011 is assigned to Bluetooth
-  and the mini-UART is on the GPIO pins. At 921600 baud — the rate the
-  [XRCE-DDS agent](xrce-dds-agent.md) needs — the mini-UART is not reliable.
+- **The login console uses it.** Linux sends login prompts down the same wires PX4
+  wants to use.
+- **Bluetooth has the better UART.** The Pi has two serial controllers. The good one
+  (`ttyAMA0`) is assigned to Bluetooth, leaving the weaker one (`ttyS0`) on the GPIO
+  pins. The weaker one is not reliable at 921600 baud, which is what the
+  [agent](xrce-dds-agent.md) needs.
 
-Both are fixed by editing the boot configuration.
+Both are fixed by editing two boot files.
 
-:::{admonition} This section is Raspberry Pi specific
-:class: note
-The steps below apply to the Pi Zero 2 W, and are the same on the Pi 3 and Pi 4. The
-Pi 5 uses a different UART layout — check the Raspberry Pi documentation for that
-board. On a non-Pi companion computer, the serial port is typically available without
-any of this, though the device name will differ (`/dev/ttyUSB0`, `/dev/ttyS0`, and so
-on); substitute it everywhere `/dev/serial0` appears.
+:::{note}
+This section is Raspberry Pi specific. The steps are the same on the Pi 3 and Pi 4.
+The Pi 5 is laid out differently, so check the Raspberry Pi documentation for that
+board. On a non-Pi computer the serial port usually works out of the box, though it
+will have a different name such as `/dev/ttyUSB0`. Use that name wherever this guide
+says `/dev/serial0`.
 :::
 
-### 1. Disable the serial console
+### 1. Turn off the serial console
 
-On Ubuntu Server for Raspberry Pi, edit `/boot/firmware/cmdline.txt` and remove the
-`console=serial0,115200` entry, leaving the rest of the line untouched. The file is
-a single line — do not add line breaks.
+Open `/boot/firmware/cmdline.txt` and delete `console=serial0,115200`. Leave the rest
+of the line alone. It is all one line, so do not press enter.
 
 ```bash
 sudo nano /boot/firmware/cmdline.txt
 ```
 
-Then stop the login prompt service from reclaiming the port:
+Then stop the login service from taking the port back:
 
 ```bash
 sudo systemctl disable --now serial-getty@ttyAMA0.service
 ```
 
-### 2. Enable the UART and free the PL011
+### 2. Turn on the UART and free up ttyAMA0
 
-Append to `/boot/firmware/config.txt`:
+Add these two lines to the end of `/boot/firmware/config.txt`:
 
 ```ini
 enable_uart=1
@@ -124,56 +112,55 @@ dtoverlay=disable-bt
 sudo nano /boot/firmware/config.txt
 ```
 
-`enable_uart=1` turns on the UART on the GPIO header. `dtoverlay=disable-bt` releases
-the PL011 from Bluetooth and moves it onto GPIO 14/15, so `/dev/serial0` becomes a
-symlink to `ttyAMA0` instead of `ttyS0`. Bluetooth is unavailable afterwards, which
-is fine for a flight computer.
+`enable_uart=1` switches on the serial port. `dtoverlay=disable-bt` takes the good
+UART away from Bluetooth and puts it on the GPIO pins, so `/dev/serial0` points to
+`ttyAMA0` instead of `ttyS0`. You lose Bluetooth, which does not matter here.
 
-Also disable the service that initialises the Bluetooth modem over that UART:
+Also turn off the service that talks to the Bluetooth chip:
 
 ```bash
 sudo systemctl disable hciuart
 ```
 
-### 3. Grant serial access to your user
+### 3. Give your user access to the serial port
 
-Serial devices are owned by the `dialout` group. Without membership, every command in
-the following pages needs `sudo`:
+Serial ports belong to the `dialout` group. Without it, every command on the
+following pages needs `sudo`:
 
 ```bash
 sudo usermod -aG dialout $USER
 ```
 
-### 4. Reboot and verify
+### 4. Reboot and check
 
 ```bash
 sudo reboot
 ```
 
-Group membership only takes effect on a new login, and the boot configuration
-changes need the reboot regardless. Once back in:
+The boot files need a reboot, and group changes only apply after you log in again.
+Once you are back:
 
 ```bash
 ls -l /dev/serial0
 ```
 
-Expected: a symlink pointing at `ttyAMA0`.
+It should point to `ttyAMA0`:
 
 ```text
 lrwxrwxrwx 1 root root 7 Aug  4 22:10 /dev/serial0 -> ttyAMA0
 ```
 
-If it points at `ttyS0`, the `disable-bt` overlay did not take effect — recheck
+If it points to `ttyS0` instead, the `disable-bt` line did not take effect. Check
 `config.txt` and reboot again.
 
-Confirm your group membership too:
+Check your groups too:
 
 ```bash
 groups
 ```
 
-Expected: `dialout` appears in the list.
+`dialout` should be in the list.
 
 ## Next
 
-Prove the link carries data → [MAVLink bridge](mavlink-bridge.md)
+[Test the link with MAVLink](mavlink-bridge.md)
