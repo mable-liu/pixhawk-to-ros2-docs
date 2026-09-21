@@ -1,19 +1,15 @@
 # ROS 2 installation
 
 Installing ROS 2 Humble on the Pi so it can act as the drone's companion computer,
-run higher-level autonomy code, and talk to the Pixhawk and the rest of the lab's
-multi-robot system.
+run higher-level autonomy code, and talk to the Pixhawk and to any other robots on
+the network.
 
 All commands run in the SSH session on the Pi.
 
-:::{admonition} Reconstructed from upstream documentation
-:class: warning
-The original notes recorded this as "configure the ROS 2 apt repository" without the
-commands. The sequence below is the current procedure from the
-[ROS 2 Humble install guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)
-and has not been re-run on the lab Pi. It should work as written on a clean 22.04
-image, but confirm it before treating this page as authoritative.
-:::
+This is the standard procedure from the
+[ROS 2 Humble install guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html),
+and nothing on this page is specific to the Raspberry Pi — it applies to any machine
+running Ubuntu 22.04.
 
 ## 1. Set the locale
 

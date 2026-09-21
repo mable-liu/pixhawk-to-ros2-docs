@@ -30,7 +30,7 @@ Imager offers to customise the OS) and set:
 | Enable SSH | Yes, *Use password authentication* |
 | Username | `ubuntu` |
 | Password | *(see below)* |
-| Wireless LAN SSID | Your lab's 2.4 GHz network |
+| Wireless LAN SSID | Your 2.4 GHz network |
 | Wireless LAN password | The network password |
 | Wireless LAN country | Your two-letter country code |
 | Locale / timezone | Your local settings |
@@ -42,12 +42,12 @@ values, substitute them everywhere below.
 :::{admonition} Wi-Fi credentials
 :class: important
 The Pi Zero 2 W has a 2.4 GHz radio only — it cannot see a 5 GHz network. If your
-lab AP broadcasts one SSID on both bands with band steering, confirm the Pi is
+access point broadcasts one SSID on both bands with band steering, confirm the Pi is
 allowed to associate on 2.4 GHz, or the Pi will flash successfully and then never
 appear on the network.
 
-Set the account password to your lab's Pi password. It is deliberately not recorded
-in this document, since this page is published publicly.
+Choose your own password here. No password is recorded in this document, since it is
+published publicly.
 :::
 
 Write the image, then move the card to the Pi.
@@ -80,7 +80,7 @@ Write the image, then move the card to the Pi.
 
 That hostname is resolved by mDNS, which some networks block and some client
 configurations do not support. If it fails, find the Pi's IP address instead — check
-the connected-clients list on the lab router, or scan from your laptop:
+the connected-clients list on your router, or scan from your laptop:
 
 ```bash
 # macOS / Linux — look for a Raspberry Pi Foundation MAC address

@@ -6,7 +6,7 @@ Failure modes grouped by the stage where they show up.
 
 **`ssh: Could not resolve hostname ubuntu.local`**
 
-mDNS is not resolving. Find the Pi's IP from the lab router's client list or with
+mDNS is not resolving. Find the Pi's IP from your router's client list or with
 `arp -a`, and connect by address instead. See
 [Raspberry Pi setup](pi-setup.md#if-ubuntulocal-does-not-resolve).
 
@@ -14,7 +14,7 @@ mDNS is not resolving. Find the Pi's IP from the lab router's client list or wit
 
 - Confirm the Wi-Fi credentials entered in Raspberry Pi Imager, including the SSID's
   exact spelling and the country code.
-- The Pi Zero 2 W is **2.4 GHz only**. If the lab SSID is 5 GHz or uses band steering,
+- The Pi Zero 2 W is **2.4 GHz only**. If the SSID is 5 GHz or uses band steering,
   the Pi may never associate.
 - Give first boot a couple of minutes — cloud-init runs before SSH comes up.
 - Check the green activity LED. Steady dark after power-on suggests the card did not
@@ -146,7 +146,7 @@ A discovery problem rather than a bridge problem.
   not just in `.bashrc`.
 - **Multicast blocked on the Wi-Fi.** Test with `ros2 multicast send` on one machine
   and `ros2 multicast receive` on the other. See
-  [Ground station](ground-station.md#multicast-on-the-lab-wi-fi).
+  [Ground station](ground-station.md#multicast-on-the-wi-fi-network).
 - **Different ROS 2 distributions.** Both machines must run Humble.
 
 ## Topics appear but echo is empty
@@ -179,35 +179,3 @@ Common causes:
 - **Wrong `ExecStart` path** — verify with `which MicroXRCEAgent`.
 - **Started before the Pixhawk powered up.** `Restart=always` should recover this
   within seconds; if it does not, check that `RestartSec` is set.
-
----
-
-## Unverified sections
-
-Reconstructed from upstream documentation rather than transcribed from the working
-lab Pi. Each is marked with a warning admonition on its own page. To finish this
-document, confirm each against the hardware and remove the admonition.
-
-| Item | Page | How to confirm |
-|---|---|---|
-| ROS 2 apt repository steps | [ROS 2 installation](ros2-install.md) | Run through on a clean 22.04 image |
-| Pixhawk 6C Mini TELEM2 pinout | [Serial connection](serial-connection.md#pinout) | Check against the Holybro pinout sheet |
-| `config.txt` / `cmdline.txt` contents | [Serial connection](serial-connection.md#enabling-the-uart-on-the-pi) | `cat /boot/firmware/config.txt` and `cat /boot/firmware/cmdline.txt` |
-| MAVProxy install commands | [MAVLink bridge](mavlink-bridge.md#installing-mavproxy-on-the-pi) | Check shell history on the Pi |
-| Agent build, and the memory workaround | [Micro XRCE-DDS Agent](xrce-dds-agent.md#building-the-agent) | Check shell history; confirm whether swap was used |
-| PX4 firmware version | [Micro XRCE-DDS Agent](xrce-dds-agent.md#confirming-the-px4-version) | `ver all` in the MAVLink console |
-| `px4_msgs` branch | {ref}`Ground station <px4-msgs-install>` | Derive from the PX4 version |
-| `ROS_DOMAIN_ID` | [Ground station](ground-station.md#domain-id) | `env \| grep ROS` on the Pi |
-| systemd unit file | [Autostart](autostart.md#the-unit-file) | `cat /etc/systemd/system/*.service` |
-
-To collect most of this in one pass, run on the Pi:
-
-```bash
-cat /etc/systemd/system/*.service
-cat /boot/firmware/config.txt
-cat /boot/firmware/cmdline.txt
-ls -l /dev/serial*
-groups
-env | grep -i ros
-history | grep -iE 'xrce|mavproxy|colcon|px4|apt install'
-```

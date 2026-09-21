@@ -56,11 +56,8 @@ Removing ModemManager matters. It probes newly appeared serial devices looking f
 cellular modems, and in doing so it grabs `/dev/serial0` and injects bytes into the
 link — which corrupts MAVLink framing in a way that looks like a wiring fault.
 
-:::{admonition} Reconstructed from upstream documentation
-:class: warning
-The original notes recorded only that "MAVProxy was installed". These commands come
-from the PX4 companion computer guide. Expect the `pip3 install` to be slow on a Pi
-Zero 2 W.
+:::{note}
+On a board as small as the Pi Zero 2 W, expect `pip3 install` to take several minutes.
 :::
 
 ## Testing the link

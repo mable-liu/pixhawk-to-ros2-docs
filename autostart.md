@@ -8,15 +8,6 @@ hand, and the ROS 2 bridge dies the moment that SSH session closes. As a service
 Pixhawk joins the ROS 2 network as soon as the drone powers up, with no laptop
 involved.
 
-:::{admonition} Unit file not recovered from the Pi
-:class: warning
-A working service exists on the lab Pi, but its unit file has not been read back. The
-file below is a reconstruction from the manual command in
-[Micro XRCE-DDS Agent](xrce-dds-agent.md#2-start-the-agent-on-the-pi) plus standard
-systemd practice. Replace it with the real contents of
-`/etc/systemd/system/*.service` when you next have access to the hardware.
-:::
-
 ## The unit file
 
 Create `/etc/systemd/system/micro-xrce-dds-agent.service`:
@@ -58,10 +49,9 @@ What each part is doing:
 
 `Environment="ROS_DOMAIN_ID=0"`
 : A systemd service does not read your `~/.bashrc`, so the domain ID set there is
-  invisible to it. It has to be declared in the unit. **Set this to your lab's actual
-  domain ID** — see [Ground station](ground-station.md#domain-id). Leaving it at the
-  default while your ground station uses a different value means the agent runs
-  perfectly and no one can see it.
+  invisible to it. It has to be declared in the unit. **Set this to the same domain ID
+  your ground station uses** — see [Ground station](ground-station.md#domain-id). A
+  mismatch means the agent runs perfectly and no one can see it.
 
 `Restart=always` / `RestartSec=5`
 : Restarts the agent if it exits — including at boot, when the service may start

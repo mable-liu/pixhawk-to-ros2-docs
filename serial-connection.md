@@ -46,13 +46,12 @@ damaging both. Power the Pi from its own supply — the `PWR IN` micro-USB port 
 bench, or the drone's power distribution in flight. CTS and RTS are unused because
 hardware flow control is not enabled on this link.
 
-:::{admonition} Confirm the connector on your board
+:::{admonition} Confirm the pinout for your flight controller
 :class: warning
-The pin numbering above is the Pixhawk connector standard as documented by PX4. The
-Pixhawk 6C Mini's specific TELEM2 pinout was not re-checked against the Holybro
-pinout sheet for this document. Verify against the silkscreen or Holybro's
-documentation before cutting the cable — a miswired harness can damage the flight
-controller.
+The numbering above is the Pixhawk connector standard, which modern boards follow.
+Older flight controllers using DF13 connectors, and some third-party boards, do not.
+Check your board's own pinout documentation before cutting the cable — a miswired
+harness can damage the flight controller.
 :::
 
 ### Building the harness
@@ -87,12 +86,13 @@ are in the way:
 
 Both are fixed by editing the boot configuration.
 
-:::{admonition} Reconstructed from upstream documentation
-:class: warning
-The original notes went straight to `/dev/serial0` without recording this step. The
-configuration below follows the PX4 companion computer guide. The exact contents of
-the lab Pi's `/boot/firmware/config.txt` and `/boot/firmware/cmdline.txt` have not
-been read back, so confirm these match what is actually running.
+:::{admonition} This section is Raspberry Pi specific
+:class: note
+The steps below apply to the Pi Zero 2 W, and are the same on the Pi 3 and Pi 4. The
+Pi 5 uses a different UART layout — check the Raspberry Pi documentation for that
+board. On a non-Pi companion computer, the serial port is typically available without
+any of this, though the device name will differ (`/dev/ttyUSB0`, `/dev/ttyS0`, and so
+on); substitute it everywhere `/dev/serial0` appears.
 :::
 
 ### 1. Disable the serial console

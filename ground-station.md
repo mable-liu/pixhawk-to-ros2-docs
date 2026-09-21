@@ -1,7 +1,7 @@
 # Ground station
 
 Reading the PX4 topics from a computer other than the Pi. This is what makes the Pi
-useful as part of the lab's multi-robot system rather than an isolated board — once
+useful as part of a larger multi-robot system rather than an isolated board — once
 DDS discovery works, any machine on the network can subscribe to the drone's
 telemetry.
 
@@ -26,13 +26,12 @@ names. Actually *reading* a topic needs its message definition. Any computer tha
 inspects, subscribes to, or publishes PX4 topics needs a matching `px4_msgs` build.
 
 :::{admonition} The branch must match your PX4 version
-:class: warning
+:class: important
 PX4's message definitions change between releases. A `px4_msgs` built from the wrong
 branch produces topics that appear in `ros2 topic list` but fail to deserialise —
 `ros2 topic echo` then prints nothing, or garbage, or a type mismatch error.
 
-The correct branch was not recorded for this setup. Get the firmware version with
-`ver all` in the QGroundControl MAVLink console
+Get the firmware version with `ver all` in the QGroundControl MAVLink console
 ([details](xrce-dds-agent.md#confirming-the-px4-version)), then check out the
 matching `release/x.y` branch below.
 :::
@@ -87,14 +86,17 @@ Add the same line to `~/.bashrc` on **both** the Pi and the ground station, and 
 that the [systemd service](autostart.md) needs it too — a service does not read your
 `.bashrc`.
 
-:::{admonition} Lab domain ID not recorded
-:class: warning
-This lab runs a multi-robot system, so the domain ID is likely set deliberately to
-keep robots from interfering with each other. The value in use has not been captured.
-Run `env | grep ROS` on the Pi to find it, and record it here.
+:::{admonition} Choose one value and use it everywhere
+:class: important
+Any integer from 0 to 101 works. What matters is that every machine that needs to see
+each other uses the same one.
+
+If you are running several robots on one network, give each its own domain ID so they
+do not interfere — that is what the setting is for. To find the value a machine is
+currently using, run `env | grep ROS`.
 :::
 
-### Multicast on the lab Wi-Fi
+### Multicast on the Wi-Fi network
 
 Default DDS discovery relies on UDP multicast. Many managed access points block or
 rate-limit multicast between wireless clients, which produces the most confusing
@@ -113,7 +115,7 @@ ros2 multicast send
 
 If the receiver prints the message, discovery will work. If it hangs, the network is
 dropping multicast and you will need a discovery server or an explicit peers list —
-ask whoever administers the lab network which approach the other robots use.
+ask whoever administers the network which approach to use.
 
 ## Verifying real data
 

@@ -19,13 +19,10 @@ Check the version from QGroundControl's **Analyze → MAVLink Console**:
 ver all
 ```
 
-Record the version — it also determines which branch of `px4_msgs` you need in
-[Ground station](ground-station.md).
-
-:::{admonition} Version not yet recorded
-:class: warning
-The PX4 firmware version on this Pixhawk 6C Mini has not been captured. Run `ver all`
-and fill it into the version table on the [index page](index.md#software-versions).
+:::{important}
+Write the version down before moving on. It determines which branch of `px4_msgs` you
+need in [Ground station](ground-station.md), and a mismatch there causes a failure
+that is hard to diagnose after the fact.
 :::
 
 ## PX4 parameters for uXRCE-DDS
@@ -53,14 +50,6 @@ mini-UART's clock is not stable enough for reliable 921600 baud; the PL011 is.
 ## Building the agent
 
 The agent is not packaged for Ubuntu, so it is built from source on the Pi.
-
-:::{admonition} Reconstructed from upstream documentation
-:class: warning
-The original notes had a section titled "Installing the Micro XRCE-DDS Agent" that
-contained no installation steps. The commands below are from the PX4 companion
-computer guide and have not been re-run on the lab Pi — in particular, the memory
-workaround has not been confirmed against what was actually done.
-:::
 
 ```bash
 sudo apt install cmake git
