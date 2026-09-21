@@ -3,7 +3,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Connecting Pixhawk to ROS 2"
+project = "PX4 to ROS 2 Integration"
 author = "Mable Liu"
 copyright = "2026, Mable Liu"
 
